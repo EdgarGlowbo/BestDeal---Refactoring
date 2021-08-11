@@ -183,7 +183,7 @@ const startInventory = () => {
     inventoryMainUI.innerHTML += `
     <div class="o-inventory__item">
       <span class="o-inventory__item-name o-text-span">${matName}</span>
-      <span class="o-inventory__item-amount o-text-span">${quantityCounter[matId]}</span>
+      <span class="o-inventory__item-amount o-text-span">${Math.round(quantityCounter[matId])}</span>
       <span class="o-inventory__item-price o-text-span o-text-span--color">$${rawAverage[matId]}</span>
     </div>
     `;                  
@@ -208,7 +208,7 @@ const updateInventory = () => {
   inventoryItem.forEach(item => {
     const itemChildren = item.children;
     const matId = materialList.children[i].id;
-    itemChildren[1].textContent = quantityCounter[matId].toString();    
+    itemChildren[1].textContent = Math.round(quantityCounter[matId]).toString();
     itemChildren[2].textContent = '$' + rawAverage[matId].toString();
     i++;
   });
