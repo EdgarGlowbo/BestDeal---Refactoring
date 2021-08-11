@@ -1,0 +1,155 @@
+// Imports
+@import "./variables";
+@import "./font";
+@import "./layout";
+
+// Container background
+.l-container {
+  background-color: $background-color;
+}
+.o-icon {
+  width: 35px;
+}
+.o-topbar {
+  background-color: $header-color;
+}
+.o-topbar__logo {
+  width: 45px;
+}
+.o-input {
+  border-radius: 10px;
+  border: none;
+  padding: 7px;
+}
+.o-form__dropdown-list--background {
+  background-color: $dropdown-color;
+  border-radius: 10px;
+  padding: 7px;
+  cursor: pointer;
+}
+.o-btn {
+  background-color: $btn-color;
+  border: none;
+  border-radius: 10px;
+  padding: 7px;
+  cursor: pointer;
+}
+.m-footer__social {
+  border-radius: 10px;
+  padding: 5px;
+}
+.o-socials__fb {
+  background-color: #2e6bea;
+}
+.o-socials__ig {
+  background-color: #db2e80;
+}
+.o-socials__tw {
+  background-color: #00a2f5;
+}
+.o-materials__list, 
+.o-materials__elem {
+  margin: 0;
+  width: 100%;
+  padding: 0;
+  list-style-type: none;
+  border-radius: 10px;
+  
+}
+// Hides dropdown
+.o-materials__list--display-none {
+  display: none;
+}
+
+.o-materials__elem {
+  background-color: $dropdown-elements-color;
+  cursor: pointer;
+}
+.o-materials__span {
+  cursor: pointer;
+}
+
+.m-main-ui__crafts {
+  background-color: $font-secondary;
+}
+.o-crafts__item {
+  background-color: $items-color;
+  padding: 5px;
+}
+
+// dropdown list items background
+.o-materials__elem {
+  margin: 3px;
+  padding: 5px;
+  text-align: center;
+}
+.o-materials__elem::hover {
+  opacity: 0.5;
+}
+
+// Inventory window background
+.m-main-ui__inventory {
+  background-color: $inventory-color;
+  border-radius: 10px;
+}
+
+// Homepage links styling
+.m-nav {
+  padding: 0px;
+  margin: 5px 10px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+
+}
+
+.m-nav__li {
+  list-style-type: none;
+  margin: 5px;
+  display: inline-block;
+}
+
+.m-nav__link {
+  display: block;
+  padding: 10px 5px;
+  background-color: black;
+  border-radius: 5px;
+}
+
+// Homepage layout
+.l-container--column {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+// Scrollbar styling
+
+.l-container::-webkit-scrollbar, 
+.m-main-ui__crafts::-webkit-scrollbar,
+.m-main-ui__inventory::-webkit-scrollbar {
+  width: 5px;               /* width of the entire scrollbar */
+}
+.l-container::-webkit-scrollbar-track, 
+.m-main-ui__crafts::-webkit-scrollbar-track,
+.m-main-ui__inventory::-webkit-scrollbar-track {
+  background:transparent; 
+  border-radius: 10px;       /* color of the tracking area */
+}
+.l-container::-webkit-scrollbar-thumb, 
+.m-main-ui__crafts::-webkit-scrollbar-thumb,
+.m-main-ui__inventory::-webkit-scrollbar-thumb {
+  background-color: gray;    /* color of the scroll thumb */
+  border-radius: 20px;       /* roundness of the scroll thumb */
+}
+// Changes in sale button color
+.o-crafts__btn--in-sale {
+  background-color: blueviolet;
+}
+
+// Adds colored border determined by enoughItems method
+.o-crafts__item--available {
+  border: solid 4px #00FF00 !important;
+}
+.o-crafts__item--unavailable {
+  border: solid 4px #a82e2e;
+}

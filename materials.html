@@ -1,0 +1,53 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestDeal - WoTLK gold making</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="./styles/styles.css">
+</head>
+<body>
+    <div class="l-container">
+      <header class="o-topbar">
+          <img class="o-topbar__logo o-icon" src="img/Icon.png" alt="">
+          <h1 class="o-topbar__title o-text-title">BestDeal</h1>
+          <a href="index.html" class="o-topbar__link"><img class="o-topbar__home-icon o-icon" src="img/Home.png" alt=""></a>
+      </header>
+      <main class="m-main-ui">
+        <form class="m-main-ui__form o-form">
+          <input type="text" class="o-form__input o-input o-input-price">
+          <input type="text" class="o-form__input o-input o-input-quantity">
+          <div class="o-form__dropdown-list o-form__dropdown-list--background o-materials">
+            <span class="o-materials__span o-text-span">Materials</span>
+            <ul class="o-materials__list o-materials__list--display-none">
+              <li class="o-materials__elem o-text-li" id="eternalFire">Eternal Fire</li>
+              <li class="o-materials__elem o-text-li" id="eternalLife">Eternal Life</li>
+              <li class="o-materials__elem o-text-li" id="eternalShadow">Eternal Shadow</li>
+              <li class="o-materials__elem o-text-li" id="imbuedFwCloth">Imbued FwC</li>
+              <li class="o-materials__elem o-text-li" id="fwBolt">Frostweave Bolt</li>
+              <li class="o-materials__elem o-text-li" id="fwCloth">Frostweave Cloth</li>
+              <li class="o-materials__elem o-text-li" id="infiniteDust">Infinite Dust</li>
+              <li class="o-materials__elem o-text-li" id="boreanLeather">Borean Leather</li>
+            </ul>
+          </div>
+          <button type="submit" class="o-form__btn o-btn">Submit</button>
+        </form>
+        <div class="m-main-ui__crafts m-crafts"></div>
+        <div class="m-main-ui__inventory o-inventory"></div>
+
+      </main>  
+      <footer class="m-footer">
+        <div class="m-footer__author">
+          <span class="m-footer__credits o-text-span o-text-span--author">Made by: Glowbo</span>
+          <span class="m-footer__donate o-text-span o-text-span--author">Liked it?</span>
+        </div>       
+      </footer>
+    </div>
+    <script src="scripts/items.js"></script>
+    <script src="scripts/materials.js"></script>
+    <script src="scripts/app.js"></script>
+    
+</body>
+</html>
