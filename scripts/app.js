@@ -86,8 +86,11 @@ class AvailableCrafts {
 class AvailableEpics extends AvailableCrafts {
   profit = 0;
   inSaleStatus = false;
-  calcProfit(price) {
-    this.profit = price - this.cost;
+  price = 0;
+  calcProfit(target) {
+    this.profit = Math.round((this.price * 0.95) - this.cost);
+    // itemsToCraft (form) children nodes to update span element
+    target.textContent = this.profit.toString();
     return this;
   }
   inSale(target, objIndex) {
@@ -98,14 +101,14 @@ class AvailableEpics extends AvailableCrafts {
         .calcCraftCost(objIndex)
         .renderEpics(objIndex)
         .inSaleStatus = false;
-      target[3].classList.remove('o-crafts__btn--in-sale');  
-      localStorage.removeItem(target[1].id);
+      target[3].classList.remove('o-crafts__btn--in-sale');      
         
     } else {
       // Calls craftItem and inSale methods. 
       this.inSaleStatus = true;      
       target[3].classList.add('o-crafts__btn--in-sale');
       localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
+
     }        
   }
  
@@ -136,16 +139,16 @@ const startApp = () => {
       if (localStorage.getItem(epicCrafts[i])) {
         const savedObj = JSON.parse(localStorage.getItem(epicCrafts[i]))
         constructedObjects[i].cost = savedObj.cost;
-        constructedObjects[i].inSaleStatus = true;
-        stylingButtonClass = 'o-crafts__btn--in-sale';
-      } else {
-        stylingButtonClass = 'none';
+        constructedObjects[i].price = savedObj.price;
+        constructedObjects[i].profit = savedObj.profit;
+        constructedObjects[i].inSaleStatus = savedObj.inSaleStatus;
+        stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
       }                  
       displayCrafts.innerHTML += `
         <div class="o-crafts__item">
           <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
           <form class="o-crafts__interface">              
-            <input type="text" class="o-crafts__input o-crafts__price o-input">
+            <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}">
             <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
             <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
             <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
@@ -183,7 +186,7 @@ const startInventory = () => {
     inventoryMainUI.innerHTML += `
     <div class="o-inventory__item">
       <span class="o-inventory__item-name o-text-span">${matName}</span>
-      <span class="o-inventory__item-amount o-text-span">${Math.round(quantityCounter[matId])}</span>
+      <span class="o-inventory__item-amount o-text-span">${quantityCounter[matId]}</span>
       <span class="o-inventory__item-price o-text-span o-text-span--color">$${rawAverage[matId]}</span>
     </div>
     `;                  
@@ -208,7 +211,7 @@ const updateInventory = () => {
   inventoryItem.forEach(item => {
     const itemChildren = item.children;
     const matId = materialList.children[i].id;
-    itemChildren[1].textContent = Math.round(quantityCounter[matId]).toString();
+    itemChildren[1].textContent = quantityCounter[matId].toString();    
     itemChildren[2].textContent = '$' + rawAverage[matId].toString();
     i++;
   });
@@ -226,22 +229,24 @@ submitMaterialsForm.addEventListener('submit', e => {
   // Updates objects values each submit event
   let i = 0;
   constructedObjects.forEach(obj => {
-    
     if (typeof materialsRecipe !== "undefined") {
       obj.calcCraftCost();
       obj.renderCrafts(i);
-      obj.enoughItems(i);
+      obj.enoughItems(i);    
       
-      i++;
     } else {
       if (!constructedObjects[i].inSaleStatus) {
         obj.calcCraftCost();
-        obj.renderEpics(i);              
+        obj.renderEpics(i);
+        if (obj.price !== 0) {
+          obj.calcProfit(itemsToCraft[i].children[2]);
+        }
       } 
-      obj.enoughItems(i);  
-      i++      
+      obj.enoughItems(i);             
     }
-  
+    // Saves every object every submit event  
+    localStorage.setItem(itemsToCraft[i].children[1].id, JSON.stringify(constructedObjects[i]));
+    i++;  
   });    
 
 });
@@ -290,10 +295,8 @@ itemsToCraft.forEach(form => {
     // Converts HTML collection to an array and gets the index of the e.target
   
     const objIndex = Array.prototype.slice.call(itemsToCraft).indexOf(e.target.parentElement);
-    constructedObjects[objIndex].calcProfit(parseInt(formChildren[0].value) * 0.95);
-    // itemsToCraft (form) children nodes to update span element
-    formChildren[2].textContent = constructedObjects[objIndex].profit.toString();
-    
+    constructedObjects[objIndex].price = parseInt(formChildren[0].value);
+    constructedObjects[objIndex].calcProfit(formChildren[2]);        
   })
 });
 
@@ -305,16 +308,18 @@ const updateApp = () => {
       obj.calcCraftCost();
       obj.renderCrafts(i);
       obj.enoughItems(i);
-      i++;
+     
     } else {
       if (!constructedObjects[i].inSaleStatus) {
         obj.calcCraftCost();
-        obj.renderEpics(i);              
+        obj.renderEpics(i);
+        if (obj.price !== 0) {
+          obj.calcProfit(itemsToCraft[i].children[2]);
+        }              
       } 
-      obj.enoughItems(i);
-      i++      
+      obj.enoughItems(i);         
     }
-  
+    i++;
   });    
 }
 updateApp();
