@@ -154,3 +154,13 @@
 .o-crafts__item--unavailable {
   border: solid 4px #a82e2e;
 }
+
+// Adds margin to undo button
+.c-header__undo-button {
+  margin: 5px;
+}
+
+// Changes buttons background color
+.o-btn--background-color {
+  background-color: crimson;
+}

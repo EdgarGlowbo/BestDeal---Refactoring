@@ -5,10 +5,12 @@ const matQuantity = document.querySelector(".o-input-quantity");
 const submitMaterialsForm = document.querySelector(".m-main-ui__form");
 const dropdownListDisplay = document.querySelector(".o-form__dropdown-list");
 const materialList = document.querySelector('.o-materials__list');
+const materialListText = document.querySelector('.o-materials__span');
 // Available crafts window
 const displayCrafts = document.querySelector(".m-crafts");
 // Inventory window
 const inventoryMainUI = document.querySelector('.m-main-ui__inventory');
+const undoButton = document.querySelector('.c-header__undo-button');
 
 
 // Stores the id of the material selected in a mouse event
@@ -108,6 +110,7 @@ class AvailableEpics extends AvailableCrafts {
       this.inSaleStatus = true;      
       target[3].classList.add('o-crafts__btn--in-sale');
       localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
+      mementoSave();
 
     }        
   }
@@ -148,7 +151,7 @@ const startApp = () => {
         <div class="o-crafts__item">
           <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
           <form class="o-crafts__interface">              
-            <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}">
+            <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
             <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
             <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
             <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
@@ -203,6 +206,7 @@ const matCost = document.querySelectorAll(".o-crafts__item-cost");
 const craftCostInput = document.querySelectorAll(".o-crafts__cost");
 // Each item form query
 const itemsToCraft = document.querySelectorAll('.o-crafts__interface');
+
 // Query to each inventory item
 const inventoryItem = document.querySelectorAll('.o-inventory__item');
 
@@ -217,6 +221,25 @@ const updateInventory = () => {
   });
 };
 
+// Stores snapshots every event that modifies an stored object
+const mementos = [];
+
+const mementoSave = () => {
+  // Array stores the objects that make an snapshot
+  const mementoSnapshot = [
+    JSON.stringify(rawAverage), 
+    JSON.stringify(quantityCounter), 
+  ];
+  // Pushes each object in constructedObject to itemsMemento array
+  const itemsMemento = [];
+  constructedObjects.forEach(item => {
+    const itemsStatus = JSON.stringify(item);
+    itemsMemento.push(itemsStatus);
+  });
+  // Pushes itemsMemento to mementoSnapshot
+  mementoSnapshot.push(itemsMemento);
+  mementos.push(mementoSnapshot);
+}
 
 // Listens for submit events in top form
 submitMaterialsForm.addEventListener('submit', e => {
@@ -246,9 +269,9 @@ submitMaterialsForm.addEventListener('submit', e => {
     }
     // Saves every object every submit event  
     localStorage.setItem(itemsToCraft[i].children[1].id, JSON.stringify(constructedObjects[i]));
-    i++;  
+    i++;    
   });    
-
+  mementoSave();
 });
 // Updates selectedMat value with the value selected in the dropdown list
 dropdownListDisplay.addEventListener('click', e => {
@@ -257,11 +280,15 @@ dropdownListDisplay.addEventListener('click', e => {
     dropdownListDisplay.children[1].classList.toggle('o-materials__list--display-none');    
   } else {
     selectedMat = e.target.id;
+    // Gets textContent of an html element acceded by id
+    const selectedMatHTMLElement = document.getElementById(selectedMat).textContent;
+    // Modifies the span text in materials button, if it is Primorial Saronite, will just display first word (well that's just lazy fix)
+    materialListText.textContent = selectedMatHTMLElement === 'Primordial Saronite' ? 'Primordial' : selectedMatHTMLElement;
     dropdownListDisplay.children[1].classList.toggle('o-materials__list--display-none');
   }
 });
 
-  
+
 itemsToCraft.forEach(form => {
 
   form.addEventListener('submit', e => {  
@@ -322,4 +349,57 @@ const updateApp = () => {
     i++;
   });    
 }
+
+
+
+const undo = () => {
+  // Removes last snapshot from mementos
+  mementos.pop();
+  // Sets the objects values to the last memento snapshot
+  const lastMemento = mementos[mementos.length - 1];
+  // Sets inventory and averages keys to localStorage
+  localStorage.setItem('averages', lastMemento[0]);
+  localStorage.setItem('inventory', lastMemento[1]);
+
+  // Sets rawAverage and quantityCounter to lastMemento values
+  if (lastMemento !== 'undefined') {
+    rawAverage = JSON.parse(lastMemento[0]);
+    quantityCounter = JSON.parse(lastMemento[1]);
+    // Sets constructedObject properties to the values of the lastMemento 3rd element
+    // Lops trough lastMemento 3rd element (array)
+    let i = 0;
+    // gets itemsPerRecipe keys (the names/ids of the epic Crafts)
+    const epicCrafts = Object.keys(itemsPerRecipe);
+    lastMemento[2].forEach(obj => {
+      const parsedObject = JSON.parse(obj);    
+      // Sets constructedObjects objects to localstorage    
+      localStorage.setItem(epicCrafts[i], obj);
+      // Sets current constructedObjects properties' values to the lastMemento ones
+      constructedObjects[i].cost = parsedObject.cost;
+      constructedObjects[i].price = parsedObject.price;
+      constructedObjects[i].profit = parsedObject.profit;
+      constructedObjects[i].inSaleStatus = parsedObject.inSaleStatus;
+      stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
+      // Renders the items again with the new values
+      displayCrafts.innerHTML += `
+        <div class="o-crafts__item">
+          <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
+          <form class="o-crafts__interface">              
+            <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
+            <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
+            <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
+            <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
+          </form>
+        </div>
+      `;
+      updateInventory();
+      i++;
+    });
+  }   
+}
+undoButton.addEventListener('click', () => {
+  undo();
+});
+mementoSave();
 updateApp();
+
