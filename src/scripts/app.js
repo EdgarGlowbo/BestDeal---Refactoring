@@ -14,38 +14,28 @@ const undoButton = document.querySelector('.c-header__undo-button');
 
 
 // Stores the id of the material selected in a mouse event
-
 let selectedMat = 'eternalFire';
-
 //Stores constructed objects
 const constructedObjects = [];
-
 // Submit prices and quantity of materials 
-
 const buyMaterials = (price, quantity, material) => {
-
   // Checks for items in quantityCounter
-
   if (quantityCounter[material] === 0) {
     rawAverage[material] = price;
     quantityCounter[material] = quantity;
-
   } else {
-
     const average = rawAverage[material];
     const inBag = quantityCounter[material];
 
     const newAverage =  ((average * inBag) + (price * quantity)) / (inBag + quantity);
     rawAverage[material] = Math.round(newAverage);
     quantityCounter[material] += Math.round(parseInt(quantity));
-
   }
   localStorage.setItem('averages', JSON.stringify(rawAverage));
   localStorage.setItem('inventory', JSON.stringify(quantityCounter)); 
 };
 
 // Show available crafts
-
 class AvailableCrafts {
   cost = 0;
   constructor(name, recipe) {
@@ -83,7 +73,6 @@ class AvailableCrafts {
   }   
 }
 
-
 // Class inherits from AvailableCrafts 
 class AvailableEpics extends AvailableCrafts {
   profit = 0;
@@ -103,18 +92,15 @@ class AvailableEpics extends AvailableCrafts {
         .calcCraftCost(objIndex)
         .renderEpics(objIndex)
         .inSaleStatus = false;
-      target[3].classList.remove('o-crafts__btn--in-sale');      
-        
+      target[3].classList.remove('o-crafts__btn--in-sale');              
     } else {
       // Calls craftItem and inSale methods. 
       this.inSaleStatus = true;      
       target[3].classList.add('o-crafts__btn--in-sale');
       localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
       mementoSave();
-
     }        
-  }
- 
+  } 
   renderEpics(i) {
     craftCostInput[i].value = Math.round(this.cost).toString();
     return this;
@@ -130,12 +116,10 @@ const startApp = () => {
 
   if (typeof materialsRecipe === 'undefined') {
     const epicCrafts = Object.keys(itemsPerRecipe);
-    let stylingButtonClass = '';
-  
+    let stylingButtonClass = '';  
       // Creates objects instances and pushes them to an array
-      epicCrafts.forEach(item => constructedObjects.push(new AvailableEpics(itemsPerRecipe[item]["name"], JSON.stringify(itemsPerRecipe[item]["recipe"]))));
-           
-    
+      epicCrafts.forEach(item => constructedObjects.push(new AvailableEpics(itemsPerRecipe[item]["name"], JSON.stringify(itemsPerRecipe[item]["recipe"]))));               
+
     for (let i = 0; i < epicCrafts.length; i++) {
       // Checks for saved objects in localstorage and sets cost and insalestatus properties to the values of the saved objects before rendering them
 
@@ -163,10 +147,9 @@ const startApp = () => {
   } else {
     const matCrafts = Object.keys(materialsRecipe);
     
-      matCrafts.forEach(item => constructedObjects.push(new AvailableCrafts(materialsRecipe[item]["name"], JSON.stringify(materialsRecipe[item]["recipe"]))));
+    matCrafts.forEach(item => constructedObjects.push(new AvailableCrafts(materialsRecipe[item]["name"], JSON.stringify(materialsRecipe[item]["recipe"]))));
       
     for (let i = 0; i < matCrafts.length; i++) {
-
       displayCrafts.innerHTML += `
       <div class="o-crafts__item">
         <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
@@ -187,10 +170,11 @@ const startInventory = () => {
     const matName = materialList.children[i].textContent;
     const matId = materialList.children[i].id;
     inventoryMainUI.innerHTML += `
-    <div class="o-inventory__item">
+    <div class="o-inventory__item" id="${matId}">
       <span class="o-inventory__item-name o-text-span">${matName}</span>
       <span class="o-inventory__item-amount o-text-span">${quantityCounter[matId]}</span>
       <span class="o-inventory__item-price o-text-span o-text-span--color">$${rawAverage[matId]}</span>
+      <button class="o-inventory__item-reset o-btn">Reset</button>
     </div>
     `;                  
   }
@@ -210,11 +194,14 @@ const itemsToCraft = document.querySelectorAll('.o-crafts__interface');
 // Query to each inventory item
 const inventoryItem = document.querySelectorAll('.o-inventory__item');
 
+// Query to inventory item reset button
+const inventoryItemReset = document.querySelectorAll('.o-inventory__item-reset');
+
 const updateInventory = () => {
   let i = 0;
   inventoryItem.forEach(item => {
     const itemChildren = item.children;
-    const matId = materialList.children[i].id;
+    const matId = item.id;  
     itemChildren[1].textContent = quantityCounter[matId].toString();    
     itemChildren[2].textContent = '$' + rawAverage[matId].toString();
     i++;
@@ -400,6 +387,29 @@ const undo = () => {
 undoButton.addEventListener('click', () => {
   undo();
 });
+
+// On click event it gets the target's id to reset the rawAverage and quantityCounter values
+// also saves to localStorage both objects
+// Adds event listener to the whole inventory UI
+inventoryMainUI.addEventListener('click', e => {
+  // Only runs if e.target has certain class
+  if (e.target.classList.contains('o-inventory__item-reset')) {
+    // Gets the target's parentElement's id
+    const itemID = e.target.parentElement.id;
+    // Sets rawAverage and quantityCounter values at 0 of given id
+    rawAverage[itemID] = 0;
+    quantityCounter[itemID] = 0;
+    // Saves rawAverage and quantityCounter to localStorage and calls updateApp and updateInventory
+    localStorage.setItem('averages', JSON.stringify(rawAverage));
+    localStorage.setItem('inventory', JSON.stringify(quantityCounter));
+    updateApp();
+    updateInventory();
+  }
+});
+// const btnParent = inventoryItemReset.forEach(btn => {
+//   console.log(btn.parentElement);
+// });
+
 mementoSave();
 updateApp();
 
