@@ -12,6 +12,18 @@ const displayCrafts = document.querySelector(".m-crafts");
 const inventoryMainUI = document.querySelector('.m-main-ui__inventory');
 const undoButton = document.querySelector('.c-header__undo-button');
 
+import { initializeApp } from 'firebase/app'
+
+const firebaseConfig = {
+  apiKey: "AIzaSyAwbXDnZoHAB38mEB62KlUKJDCA2HncwLU",
+  authDomain: "bestdeal-3e2e2.firebaseapp.com",
+  projectId: "bestdeal-3e2e2",
+  storageBucket: "bestdeal-3e2e2.appspot.com",
+  messagingSenderId: "621719322823",
+  appId: "1:621719322823:web:a79db354bc754e3b5d3ee2"
+};
+
+initializeApp(firebaseConfig);
 
 // Stores the id of the material selected in a mouse event
 let selectedMat = 'eternalFire';
@@ -20,19 +32,23 @@ const constructedObjects = [];
 // Submit prices and quantity of materials 
 const buyMaterials = (price, quantity, material) => {
   // Checks for items in quantityCounter
-  if (quantityCounter[material] === 0) {
-    rawAverage[material] = price;
-    quantityCounter[material] = quantity;
-  } else {
-    const average = rawAverage[material];
-    const inBag = quantityCounter[material];
-
-    const newAverage =  ((average * inBag) + (price * quantity)) / (inBag + quantity);
-    rawAverage[material] = Math.round(newAverage);
-    quantityCounter[material] += Math.round(parseInt(quantity));
-  }
-  localStorage.setItem('averages', JSON.stringify(rawAverage));
-  localStorage.setItem('inventory', JSON.stringify(quantityCounter)); 
+  if (typeof price === 'number' && typeof quantity === 'number') {
+    if (quantityCounter[material] === 0) {
+      rawAverage[material] = price;
+      quantityCounter[material] = quantity;
+    } else {
+      const average = rawAverage[material];
+      const inBag = quantityCounter[material];
+  
+      const newAverage =  ((average * inBag) + (price * quantity)) / (inBag + quantity);
+      rawAverage[material] = Math.round(newAverage);
+      quantityCounter[material] += Math.round(parseInt(quantity));
+    }
+  
+    // <<Saves data>>
+    localStorage.setItem('averages', JSON.stringify(rawAverage));
+    localStorage.setItem('inventory', JSON.stringify(quantityCounter));    
+  }   
 };
 
 // Show available crafts
@@ -54,6 +70,8 @@ class AvailableCrafts {
     Object.keys(this.recipe).forEach(material => {
       quantityCounter[material] -= (this.recipe[material] * quantity)      
     });
+
+    // <<Saves data>>
     localStorage.setItem('averages', JSON.stringify(rawAverage));
     localStorage.setItem('inventory', JSON.stringify(quantityCounter));        
     return this;
@@ -85,14 +103,14 @@ class AvailableEpics extends AvailableCrafts {
     return this;
   }
   inSale(target, objIndex) {
-    if (this.inSaleStatus) {
-      // If inSaleStatus === true then remove item from localstorage and calls renderEpics to update the value
-      // for the target        
+    // If inSaleStatus is true then set it to false and calls two functions to update the status of the targeted item also setitem to localstorage
+    if (this.inSaleStatus) {          
       this
         .calcCraftCost(objIndex)
         .renderEpics(objIndex)
         .inSaleStatus = false;
-      target[3].classList.remove('o-crafts__btn--in-sale');              
+      target[3].classList.remove('o-crafts__btn--in-sale');      
+      localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
     } else {
       // Calls craftItem and inSale methods. 
       this.inSaleStatus = true;      
@@ -231,34 +249,38 @@ const mementoSave = () => {
 // Listens for submit events in top form
 submitMaterialsForm.addEventListener('submit', e => {
   e.preventDefault();
-
-  buyMaterials(parseInt(matPrice.value), parseInt(matQuantity.value), selectedMat);
-  updateInventory();
-  submitMaterialsForm.reset();
-
-  // Updates objects values each submit event
-  let i = 0;
-  constructedObjects.forEach(obj => {
-    if (typeof materialsRecipe !== "undefined") {
-      obj.calcCraftCost();
-      obj.renderCrafts(i);
-      obj.enoughItems(i);    
-      
-    } else {
-      if (!constructedObjects[i].inSaleStatus) {
+  const price = parseInt(matPrice.value);
+  const quantity = parseInt(matQuantity.value);
+  
+  if (!isNaN(price) && !isNaN(quantity)) {
+    buyMaterials(price, quantity, selectedMat);
+    updateInventory();
+  
+    // Updates objects values each submit event
+    let i = 0;
+    constructedObjects.forEach(obj => {
+      if (typeof materialsRecipe !== "undefined") {
         obj.calcCraftCost();
-        obj.renderEpics(i);
-        if (obj.price !== 0) {
-          obj.calcProfit(itemsToCraft[i].children[2]);
-        }
-      } 
-      obj.enoughItems(i);             
-    }
-    // Saves every object every submit event  
-    localStorage.setItem(itemsToCraft[i].children[1].id, JSON.stringify(constructedObjects[i]));
-    i++;    
-  });    
-  mementoSave();
+        obj.renderCrafts(i);
+        obj.enoughItems(i);    
+        
+      } else {
+        if (!constructedObjects[i].inSaleStatus) {
+          obj.calcCraftCost();
+          obj.renderEpics(i);
+          if (obj.price !== 0) {
+            obj.calcProfit(itemsToCraft[i].children[2]);
+          }
+        } 
+        obj.enoughItems(i);             
+      }
+      // Saves every object every submit event  
+      localStorage.setItem(itemsToCraft[i].children[1].id, JSON.stringify(constructedObjects[i]));
+      i++;    
+    });    
+    mementoSave();
+  }
+  submitMaterialsForm.reset();
 });
 // Updates selectedMat value with the value selected in the dropdown list
 dropdownListDisplay.addEventListener('click', e => {
