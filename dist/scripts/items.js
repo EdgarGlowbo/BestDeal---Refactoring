@@ -1,70 +1,121 @@
 // Stores the averages from each item
 
-let rawAverage = {
-    primordialSaronite: 0,  
-    crusaderOrb: 0,
-    titansteelBar: 0,
-    saroniteBar: 0,
-    eternalEarth: 0,
-    eternalFire: 0,
-    eternalLife: 0,
-    eternalWater: 0,
-    eternalAir: 0,
-    kingsAmber: 0,
-    majesticZircon: 0,
-    arcticFur: 0,
-    eternalShadow: 0,
-    icyDragon: 0,
-    nerubianChitin: 0,
-    heavyBorean: 0,
-    jormungarScale: 0,
-    abyssCrystal: 0,
-    spellweave: 0,
-    ebonweave: 0,
-    mooncloth: 0,
-    cardinalRuby: 0,
-    dreamshard: 0,
-    eyeOfZul: 0,
-    boreanLeather: 0,
-    imbuedFwCloth: 0,
-    fwCloth: 0,
-    fwBolt: 0,
-    infiniteDust: 0
-
-
-
+let matsInfo = {
+    primordialSaronite: {
+        price: 0,
+        quantity: 0
+    },  
+    crusaderOrb: {
+        price: 0,
+        quantity: 0
+    },
+    titansteelBar: {
+        price: 0,
+        quantity: 0
+    },
+    saroniteBar: {
+        price: 0,
+        quantity: 0
+    },
+    eternalEarth: {
+        price: 0,
+        quantity: 0
+    },
+    eternalFire: {
+        price: 0,
+        quantity: 0
+    },
+    eternalLife: {
+        price: 0,
+        quantity: 0
+    },
+    eternalWater: {
+        price: 0,
+        quantity: 0
+    },
+    eternalAir: {
+        price: 0,
+        quantity: 0
+    },
+    kingsAmber: {
+        price: 0,
+        quantity: 0
+    },
+    majesticZircon: {
+        price: 0,
+        quantity: 0
+    },
+    arcticFur: {
+        price: 0,
+        quantity: 0
+    },
+    eternalShadow: {
+        price: 0,
+        quantity: 0
+    },
+    icyDragon: {
+        price: 0,
+        quantity: 0
+    },
+    nerubianChitin: {
+        price: 0,
+        quantity: 0
+    },
+    heavyBorean: {
+        price: 0,
+        quantity: 0
+    },
+    jormungarScale: {
+        price: 0,
+        quantity: 0
+    },
+    abyssCrystal: {
+        price: 0,
+        quantity: 0
+    },
+    spellweave: {
+        price: 0,
+        quantity: 0
+    },
+    ebonweave: {
+        price: 0,
+        quantity: 0
+    },
+    mooncloth: {
+        price: 0,
+        quantity: 0
+    },
+    cardinalRuby: {
+        price: 0,
+        quantity: 0
+    },
+    dreamshard: {
+        price: 0,
+        quantity: 0
+    },
+    eyeOfZul: {
+        price: 0,
+        quantity: 0
+    },
+    boreanLeather: {
+        price: 0,
+        quantity: 0
+    },
+    imbuedFwCloth: {
+        price: 0,
+        quantity: 0
+    },
+    fwCloth: {
+        price: 0,
+        quantity: 0
+    },
+    fwBolt: {
+        price: 0,
+        quantity: 0
+    },
+    infiniteDust: {
+        price: 0,
+        quantity: 0
+    }
 };
 
-// Collect quantities from each submit event
-let quantityCounter = {
-    primordialSaronite: 0,  
-    crusaderOrb: 0,
-    titansteelBar: 0,
-    saroniteBar: 0,
-    eternalEarth: 0,
-    eternalFire: 0,
-    eternalLife: 0,
-    eternalWater: 0,
-    eternalAir: 0,
-    kingsAmber: 0,
-    majesticZircon: 0,
-    arcticFur: 0,
-    eternalShadow: 0,
-    icyDragon: 0,
-    nerubianChitin: 0,
-    heavyBorean: 0,
-    jormungarScale: 0,
-    abyssCrystal: 0,
-    spellweave: 0,
-    ebonweave: 0,
-    mooncloth: 0,
-    cardinalRuby: 0,
-    dreamshard: 0,
-    eyeOfZul: 0,
-    boreanLeather: 0,
-    imbuedFwCloth: 0,
-    fwCloth: 0,
-    fwBolt: 0,
-    infiniteDust: 0
-
-};

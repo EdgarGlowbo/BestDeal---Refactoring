@@ -30,30 +30,29 @@ initializeApp(firebaseConfig);
 
 const db = getFirestore();
 
+
+
 // Stores the id of the material selected in a mouse event
 let selectedMat = 'eternalFire';
 //Stores constructed objects
 const constructedObjects = [];
 // Submit prices and quantity of materials 
-const buyMaterials = (price, quantity, material) => {
-  // Checks for items in quantityCounter
-  if (typeof price === 'number' && typeof quantity === 'number') {
-    if (quantityCounter[material] === 0) {
-      rawAverage[material] = price;
-      quantityCounter[material] = quantity;
-    } else {
-      const average = rawAverage[material];
-      const inBag = quantityCounter[material];
-  
-      const newAverage =  ((average * inBag) + (price * quantity)) / (inBag + quantity);
-      rawAverage[material] = Math.round(newAverage);
-      quantityCounter[material] += Math.round(parseInt(quantity));
-    }
-  
-    // <<Saves data>>
-    localStorage.setItem('averages', JSON.stringify(rawAverage));
-    localStorage.setItem('inventory', JSON.stringify(quantityCounter));    
-  }   
+const buyMaterials = (priceInput, quantityInput, material) => {
+  // Checks for existence of inventory on matsInfo if quantity is 0 then price and quantity should be equal to the input
+  if (matsInfo[material].quantity === 0) {
+    matsInfo[material].price = priceInput;
+    matsInfo[material].quantity = quantityInput;
+  } else {
+    const average = matsInfo[material].price;
+    const inBag = matsInfo[material].quantity;
+
+    const newAverage =  ((average * inBag) + (priceInput * quantityInput)) / (inBag + quantityInput);
+    matsInfo[material].price = Math.round(newAverage);
+    matsInfo[material].quantity += Math.round(parseInt(quantityInput));
+  }
+
+  // <<Saves data>>
+  localStorage.setItem('materials', JSON.stringify(matsInfo));       
 };
 
 // Show available crafts
@@ -66,19 +65,17 @@ class AvailableCrafts {
   calcCraftCost() {
     let calculatedCost = 0;
     Object.keys(this.recipe).forEach(material => {
-      calculatedCost += this.recipe[material] * rawAverage[material];
+      calculatedCost += this.recipe[material] * matsInfo[material].price;
       this.cost = calculatedCost;            
     });
     return this;
   }
-  craftItem(quantity) {
+  craftItem(quantityInput) {
     Object.keys(this.recipe).forEach(material => {
-      quantityCounter[material] -= (this.recipe[material] * quantity)      
+      matsInfo[material].quantity -= (this.recipe[material] * quantityInput)      
     });
-
     // <<Saves data>>
-    localStorage.setItem('averages', JSON.stringify(rawAverage));
-    localStorage.setItem('inventory', JSON.stringify(quantityCounter));        
+    localStorage.setItem('materials', JSON.stringify(matsInfo));     
     return this;
   }
   renderCrafts(i) {
@@ -88,7 +85,7 @@ class AvailableCrafts {
     itemsToCraft[i].parentElement.classList.add('o-crafts__item--available');
     Object.keys(this.recipe).forEach(mat => {      
       
-      if (quantityCounter[mat] < this.recipe[mat]) {
+      if (matsInfo[mat].quantity < this.recipe[mat]) {
         itemsToCraft[i].parentElement.classList.remove('o-crafts__item--available');            
         itemsToCraft[i].parentElement.classList.add('o-crafts__item--unavailable');      
       }       
@@ -134,10 +131,9 @@ class AvailableEpics extends AvailableCrafts {
 // Constructs all of the objects at the start of the application
 const startApp = () => {
   // Checks for saved data
-  if (localStorage.getItem('averages') && localStorage.getItem('inventory')) {
-    // sets quantityCounter and rawAverga values to saved data ones
-    quantityCounter = JSON.parse(localStorage.getItem('inventory'));
-    rawAverage = JSON.parse(localStorage.getItem('averages'));
+  if (localStorage.getItem('materials')) {
+    // sets matsInfo object to the stored one
+    matsInfo = JSON.parse(localStorage.getItem('materials'));    
   }
 
   if (typeof materialsRecipe === 'undefined') {
@@ -196,7 +192,8 @@ const startApp = () => {
     }
   }
 };
-// Renders the name from the materials in materialList ul, gets the id of the li elements to access those properties in quantityCounter and rawAverage and display them
+// Renders the name from the materials in materialList ul, 
+// gets the id of the li elements to access matsInfo properties
 const startInventory = () => {  
   for (let i = 0; i < materialList.children.length; i++) {
     const matName = materialList.children[i].textContent;
@@ -204,8 +201,8 @@ const startInventory = () => {
     inventoryMainUI.innerHTML += `
     <div class="o-inventory__item" id="${matId}">
       <span class="o-inventory__item-name o-text-span">${matName}</span>
-      <span class="o-inventory__item-amount o-text-span">${quantityCounter[matId]}</span>
-      <span class="o-inventory__item-price o-text-span o-text-span--color">$${rawAverage[matId]}</span>
+      <span class="o-inventory__item-amount o-text-span">${matsInfo[matId].quantity}</span>
+      <span class="o-inventory__item-price o-text-span o-text-span--color">$${matsInfo[matId].price}</span>
       <button class="o-inventory__item-reset o-btn">Reset</button>
     </div>
     `;                  
@@ -234,8 +231,8 @@ const updateInventory = () => {
   inventoryItem.forEach(item => {
     const itemChildren = item.children;
     const matId = item.id;  
-    itemChildren[1].textContent = quantityCounter[matId].toString();    
-    itemChildren[2].textContent = '$' + rawAverage[matId].toString();
+    itemChildren[1].textContent = matsInfo[matId].quantity.toString();    
+    itemChildren[2].textContent = '$' + matsInfo[matId].price.toString();
     i++;
   });
 };
@@ -246,8 +243,7 @@ const mementos = [];
 const mementoSave = () => {
   // Array stores the objects that make an snapshot
   const mementoSnapshot = [
-    JSON.stringify(rawAverage), 
-    JSON.stringify(quantityCounter), 
+    JSON.stringify(matsInfo)
   ];
   // Pushes each object in constructedObject to itemsMemento array
   const itemsMemento = [];
@@ -384,22 +380,18 @@ const undo = () => {
   const lastMemento = mementos[mementos.length - 1];
   // Sets inventory and averages keys to localStorage
   // <<Saves data>>
-  localStorage.setItem('averages', lastMemento[0]);
-  localStorage.setItem('inventory', lastMemento[1]);
+  localStorage.setItem('materials', lastMemento[0]);
 
-  // Sets rawAverage and quantityCounter to lastMemento values
+  // Sets matsInfo to the one stored in lastMemento
   if (lastMemento !== 'undefined') {
-    rawAverage = JSON.parse(lastMemento[0]);
-    quantityCounter = JSON.parse(lastMemento[1]);
-    // Sets constructedObject properties to the values of the lastMemento 3rd element
-    // Lops trough lastMemento 3rd element (array)
+    matsInfo = JSON.parse(lastMemento[0]);    
+    // Sets constructedObject properties to the values of the lastMemento 2nd element    
     let i = 0;
     // gets itemsPerRecipe keys (the names/ids of the epic Crafts)
     const epicCrafts = Object.keys(itemsPerRecipe);
     // Loops through lastMemento 3rd element (an array) 
-    lastMemento[2].forEach(obj => {
-      const parsedObject = JSON.parse(obj);    
-     
+    lastMemento[1].forEach(obj => {
+      const parsedObject = JSON.parse(obj);         
       // Sets current constructedObjects properties' values to the lastMemento ones
       constructedObjects[i].cost = parsedObject.cost;
       constructedObjects[i].price = parsedObject.price;
@@ -430,7 +422,7 @@ undoButton.addEventListener('click', () => {
   undo();
 });
 
-// On click event it gets the target's id to reset the rawAverage and quantityCounter values
+// On click event it gets the target's id to reset the matsInfo values
 // also saves to localStorage both objects
 // Adds event listener to the whole inventory UI
 inventoryMainUI.addEventListener('click', e => {
@@ -438,20 +430,17 @@ inventoryMainUI.addEventListener('click', e => {
   if (e.target.classList.contains('o-inventory__item-reset')) {
     // Gets the target's parentElement's id
     const itemID = e.target.parentElement.id;
-    // Sets rawAverage and quantityCounter values at 0 of given id
-    rawAverage[itemID] = 0;
-    quantityCounter[itemID] = 0;
-    // Saves rawAverage and quantityCounter to localStorage and calls updateApp and updateInventory
-    // <<Saves data>>
-    localStorage.setItem('averages', JSON.stringify(rawAverage));
-    localStorage.setItem('inventory', JSON.stringify(quantityCounter));
+    // Sets matsInfo values at 0 at given id
+    matsInfo[itemID].price = 0;
+    matsInfo[itemID].quantity = 0;
+    
+    // <<Saves data>>    
+    localStorage.setItem('materials', JSON.stringify(matsInfo));
     updateApp();
     updateInventory();
   }
 });
-// const btnParent = inventoryItemReset.forEach(btn => {
-//   console.log(btn.parentElement);
-// });
+
 
 mementoSave();
 updateApp();
