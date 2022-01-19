@@ -12,7 +12,10 @@ const displayCrafts = document.querySelector(".m-crafts");
 const inventoryMainUI = document.querySelector('.m-main-ui__inventory');
 const undoButton = document.querySelector('.c-header__undo-button');
 
-import { initializeApp } from 'firebase/app'
+import { initializeApp } from 'firebase/app';
+import { 
+  getFirestore, collection
+} from 'firebase/firestore'
 
 const firebaseConfig = {
   apiKey: "AIzaSyAwbXDnZoHAB38mEB62KlUKJDCA2HncwLU",
@@ -24,6 +27,8 @@ const firebaseConfig = {
 };
 
 initializeApp(firebaseConfig);
+
+const db = getFirestore();
 
 // Stores the id of the material selected in a mouse event
 let selectedMat = 'eternalFire';
@@ -109,12 +114,14 @@ class AvailableEpics extends AvailableCrafts {
         .calcCraftCost(objIndex)
         .renderEpics(objIndex)
         .inSaleStatus = false;
-      target[3].classList.remove('o-crafts__btn--in-sale');      
+      target[3].classList.remove('o-crafts__btn--in-sale');
+      // <<Saves data>>      
       localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
     } else {
       // Calls craftItem and inSale methods. 
       this.inSaleStatus = true;      
       target[3].classList.add('o-crafts__btn--in-sale');
+      // <<Saves data>>
       localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
       mementoSave();
     }        
@@ -126,21 +133,28 @@ class AvailableEpics extends AvailableCrafts {
 }
 // Constructs all of the objects at the start of the application
 const startApp = () => {
+  // Checks for saved data
   if (localStorage.getItem('averages') && localStorage.getItem('inventory')) {
+    // sets quantityCounter and rawAverga values to saved data ones
     quantityCounter = JSON.parse(localStorage.getItem('inventory'));
     rawAverage = JSON.parse(localStorage.getItem('averages'));
   }
 
-
   if (typeof materialsRecipe === 'undefined') {
+    let stylingButtonClass = '';
     const epicCrafts = Object.keys(itemsPerRecipe);
-    let stylingButtonClass = '';  
       // Creates objects instances and pushes them to an array
-      epicCrafts.forEach(item => constructedObjects.push(new AvailableEpics(itemsPerRecipe[item]["name"], JSON.stringify(itemsPerRecipe[item]["recipe"]))));               
+      epicCrafts.forEach(item => {
+        // Get name and recipe properties from itemsPerRecipe object
+        const itemName = itemsPerRecipe[item]['name'];
+        const itemRecipe = JSON.stringify(itemsPerRecipe[item]['recipe']);
+        // Pushes to constructedObject arr object instances created with name and recipe properties
+        constructedObjects.push(new AvailableEpics(itemName, itemRecipe));
+      });
 
     for (let i = 0; i < epicCrafts.length; i++) {
       // Checks for saved objects in localstorage and sets cost and insalestatus properties to the values of the saved objects before rendering them
-
+      // checks for saved data
       if (localStorage.getItem(epicCrafts[i])) {
         const savedObj = JSON.parse(localStorage.getItem(epicCrafts[i]))
         constructedObjects[i].cost = savedObj.cost;
@@ -275,6 +289,7 @@ submitMaterialsForm.addEventListener('submit', e => {
         obj.enoughItems(i);             
       }
       // Saves every object every submit event  
+      // <<Saves data>>
       localStorage.setItem(itemsToCraft[i].children[1].id, JSON.stringify(constructedObjects[i]));
       i++;    
     });    
@@ -362,11 +377,13 @@ const updateApp = () => {
 
 
 const undo = () => {
+  let stylingButtonClass = '';
   // Removes last snapshot from mementos
   mementos.pop();
   // Sets the objects values to the last memento snapshot
   const lastMemento = mementos[mementos.length - 1];
   // Sets inventory and averages keys to localStorage
+  // <<Saves data>>
   localStorage.setItem('averages', lastMemento[0]);
   localStorage.setItem('inventory', lastMemento[1]);
 
@@ -379,16 +396,19 @@ const undo = () => {
     let i = 0;
     // gets itemsPerRecipe keys (the names/ids of the epic Crafts)
     const epicCrafts = Object.keys(itemsPerRecipe);
+    // Loops through lastMemento 3rd element (an array) 
     lastMemento[2].forEach(obj => {
       const parsedObject = JSON.parse(obj);    
-      // Sets constructedObjects objects to localstorage    
-      localStorage.setItem(epicCrafts[i], obj);
+     
       // Sets current constructedObjects properties' values to the lastMemento ones
       constructedObjects[i].cost = parsedObject.cost;
       constructedObjects[i].price = parsedObject.price;
       constructedObjects[i].profit = parsedObject.profit;
-      constructedObjects[i].inSaleStatus = parsedObject.inSaleStatus;
+      constructedObjects[i].inSaleStatus = parsedObject.inSaleStatus;    
       stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
+      // Sets constructedObjects objects to localstorage
+      // <<Saves data>>       
+      localStorage.setItem(epicCrafts[i], obj);
       // Renders the items again with the new values
       displayCrafts.innerHTML += `
         <div class="o-crafts__item">
@@ -422,6 +442,7 @@ inventoryMainUI.addEventListener('click', e => {
     rawAverage[itemID] = 0;
     quantityCounter[itemID] = 0;
     // Saves rawAverage and quantityCounter to localStorage and calls updateApp and updateInventory
+    // <<Saves data>>
     localStorage.setItem('averages', JSON.stringify(rawAverage));
     localStorage.setItem('inventory', JSON.stringify(quantityCounter));
     updateApp();
