@@ -1,0 +1,63 @@
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BestDeal - WoTLK gold making</title>
+    <link rel="preconnect" href="https://fonts.gstatic.com">
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@200&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="../styles/styles.css">
+</head>
+<body>
+    <div class="l-container">
+        <header class="o-topbar">
+          <img class="o-topbar__logo o-icon" src="../../assets/img/Icon.png" alt="">
+          <h1 class="o-topbar__title o-text-title">BestDeal</h1>
+          <a href="index.html" class="o-topbar__link"><img class="o-topbar__home-icon o-icon" src="../../assets/img/Home.png" alt=""></a>
+        </header>
+        <main class="m-main-ui">
+            <div class="c-main-ui__header c-header">
+                <button class="c-header__undo-button o-btn o-btn--background-color">Undo</button>
+                <h2 class="m-main-ui__name o-text-title-2">LEATHERWORKING</h2>
+              </div> 
+            
+            <!-- Bought materials input fields -->
+
+            <form class="m-main-ui__form o-form">
+                <input type="text" class="o-form__input o-input o-input-price" placeholder="$">
+                <input type="text" class="o-form__input o-input o-input-quantity">
+                <div class="o-form__dropdown-list o-form__dropdown-list--background o-materials">
+                  <span class="o-materials__span o-text-span">Materials</span>
+                  <ul class="o-materials__list o-materials__list--display-none">
+                    <li class="o-materials__elem o-text-li" id="primordialSaronite">Primordial Saronite</li>
+                    <li class="o-materials__elem o-text-li" id="crusaderOrb">Crusader Orb</li>
+                    <li class="o-materials__elem o-text-li" id="arcticFur">Arctic Fur</li>
+                    <li class="o-materials__elem o-text-li" id="nerubianChitin">Nerubian Chitin</li>
+                    <li class="o-materials__elem o-text-li" id="jormungarScale">Jormungar Scale</li>                    
+                    <li class="o-materials__elem o-text-li" id="icyDragon">Icy Dragonscale</li>                    
+                    <li class="o-materials__elem o-text-li" id="heavyBorean">Heavy Borean Leather</li>                                      
+                    <li class="o-materials__elem o-text-li" id="eternalShadow">Eternal Shadow</li>
+                    <li class="o-materials__elem o-text-li" id="eternalEarth">Eternal Earth</li>
+                    <li class="o-materials__elem o-text-li" id="eternalLife">Eternal Life</li>              
+                    <li class="o-materials__elem o-text-li" id="eternalAir">Eternal Air</li>
+                    <li class="o-materials__elem o-text-li" id="abyssCrystal">Abyss Crystal</li>                    
+                  </ul>
+                </div>
+                <button type="submit" class="o-form__btn o-btn">Submit</button>
+            </form>
+            <!-- Calculated production cost output and AH price input fields -->
+            <div class="m-main-ui__crafts m-crafts"></div>
+            <div class="m-main-ui__inventory o-inventory"></div>
+        </main>
+        <footer class="m-footer">
+            <div class="m-footer__author">
+              <span class="m-footer__credits o-text-span">Made by: Glowbo</span>
+              <span class="m-footer__donate o-text-span">Liked it?</span>
+            </div>            
+        </footer>
+    </div>
+    <script src="../scripts/items.js"></script>
+    <script src="../scripts/leatherworking.js"></script>
+    <script src="../scripts/bundle.js"></script>
+</body>
+</html>

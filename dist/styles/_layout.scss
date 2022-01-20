@@ -1,0 +1,138 @@
+// container mobile device
+.l-container {
+  height: 812px;
+  width: 375px;
+  margin: 0 auto;
+  overflow: auto;
+}
+// Header layout
+.o-topbar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  position: sticky;
+  width: 375px;
+  height: 50px;
+  top: 0px;
+  z-index: 1;
+}
+// Form layout
+.m-main-ui__form {
+  margin: 15px 10px 15px;
+}
+.o-form {
+  max-width: 100%;
+  display: flex;
+  justify-content: space-around;
+}
+.o-input {
+  width: 22.5%;
+}
+// Materials dropdown list layout
+.o-form__dropdown-list {
+  position: relative;
+  width: 30%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+// dropdown list positioning
+.o-materials__list {
+  position: absolute;
+  top: 40px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+
+
+// Crafts window setup
+.m-main-ui__crafts {
+  margin: 0 20px 10px;
+  height: 300px;
+  overflow: auto;
+  border-radius: 10px;
+  
+}
+// Crafts windows items layout
+.m-crafts {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.o-crafts__item {
+  margin: 5px 5px;
+  border-radius: 10px;
+  text-align: center;
+}
+.o-crafts__item-name {
+  margin: 3px;
+}
+.o-crafts__interface {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  margin: 3px;
+}
+// .o-crafts__input {
+//   flex-grow: 2;
+//   margin: 3px;
+// }
+// .o-crafts__text {
+//   flex-grow: 3;
+// }
+// Inventory layout
+.m-main-ui__inventory {
+  margin: 0 20px 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 300px;
+  overflow: auto;
+}
+.o-inventory__item {
+  width: 80%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 15%;
+  margin: 5px auto;
+}
+.o-inventory__item-name {
+  flex-grow: 1;
+}
+.o-inventory__item-name,
+.o-inventory__item-amount,
+.o-inventory__item-price {
+  padding: 5px;
+  margin: 5px;
+}
+.m-footer {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+.m-footer__author, .m-footer__socials {
+  margin: 5px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.m-footer__credits,
+.m-footer__donate {
+  padding: 5px;
+  margin: 3px;
+}
+.m-footer__social {
+  margin: 5px;
+}
+
+// Professions headers layout
+.m-main-ui__name {
+  text-align: center;
+  margin: 0px;
+}
