@@ -14,7 +14,8 @@ const undoButton = document.querySelector('.c-header__undo-button');
 
 import { initializeApp } from 'firebase/app';
 import { 
-  getFirestore, collection
+  getFirestore, collection, doc,
+  setDoc, getDocs, getDoc
 } from 'firebase/firestore'
 
 const firebaseConfig = {
@@ -30,12 +31,34 @@ initializeApp(firebaseConfig);
 
 const db = getFirestore();
 
+// Selected (profile) for collectionReference
+const selectedProfile = 'huntail';
 
+// materials collection reference
+const matsColRef = collection(db, 'users', selectedProfile, 'materials');
 
 // Stores the id of the material selected in a mouse event
 let selectedMat = 'eternalFire';
 //Stores constructed objects
 const constructedObjects = [];
+
+const todbMatsinfo = () => {
+  // <<Saves data>>
+  // Gets matsInfo keys
+  const docIDs = Object.keys(matsInfo);
+  // Sets documents for each key in matsInfo in materials collection
+  docIDs.forEach(id => {
+    const docRef = doc(db, 'users', selectedProfile, 'materials', id);
+    setDoc(docRef, matsInfo[id]);
+  });
+}
+
+const todbConstructedObjs = (id, item) => {
+  // <<Saves data>>  
+  const docRef = doc(db, 'users', selectedProfile, 'items', id);
+  // Sets to db a class instance (custom object). Solves compatibility problem by converting it to a JSON object
+  setDoc(docRef, JSON.parse(JSON.stringify(item)));
+}
 // Submit prices and quantity of materials 
 const buyMaterials = (priceInput, quantityInput, material) => {
   // Checks for existence of inventory on matsInfo if quantity is 0 then price and quantity should be equal to the input
@@ -51,8 +74,10 @@ const buyMaterials = (priceInput, quantityInput, material) => {
     matsInfo[material].quantity += Math.round(parseInt(quantityInput));
   }
 
-  // <<Saves data>>
-  localStorage.setItem('materials', JSON.stringify(matsInfo));       
+  // Saves matsInfo object to db
+  todbMatsinfo();
+  // localStorage.setItem('materials', JSON.stringify(matsInfo));
+  
 };
 
 // Show available crafts
@@ -74,8 +99,8 @@ class AvailableCrafts {
     Object.keys(this.recipe).forEach(material => {
       matsInfo[material].quantity -= (this.recipe[material] * quantityInput)      
     });
-    // <<Saves data>>
-    localStorage.setItem('materials', JSON.stringify(matsInfo));     
+    // <<Saves data>> matsInfo to db
+    todbMatsinfo();
     return this;
   }
   renderCrafts(i) {
@@ -111,54 +136,58 @@ class AvailableEpics extends AvailableCrafts {
         .calcCraftCost(objIndex)
         .renderEpics(objIndex)
         .inSaleStatus = false;
-      target[3].classList.remove('o-crafts__btn--in-sale');
-      // <<Saves data>>      
-      localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
+      target[3].classList.remove('o-crafts__btn--in-sale');  
     } else {
       // Calls craftItem and inSale methods. 
       this.inSaleStatus = true;      
-      target[3].classList.add('o-crafts__btn--in-sale');
-      // <<Saves data>>
-      localStorage.setItem(target[1].id, JSON.stringify(constructedObjects[objIndex]));
-      mementoSave();
-    }        
+      target[3].classList.add('o-crafts__btn--in-sale');      
+    }
+    // <<Saves data>>    
+    todbConstructedObjs(target[1].id, constructedObjects[objIndex]);      
+    mementoSave();
   } 
   renderEpics(i) {
     craftCostInput[i].value = Math.round(this.cost).toString();
     return this;
   }
 }
-// Constructs all of the objects at the start of the application
-const startApp = () => {
-  // Checks for saved data
-  if (localStorage.getItem('materials')) {
-    // sets matsInfo object to the stored one
-    matsInfo = JSON.parse(localStorage.getItem('materials'));    
-  }
 
+// Constructs all of the objects at the start of the application
+async const startApp = () => {
+  // Retrieves materials values from db to set them to matsInfo
+  await getDocs(matsColRef)
+    .then(snapshot => snapshot.forEach(doc => {
+      matsInfo[doc.id] = doc.data();      
+    }))
+    .catch(err => console.log(err))  
+  // Only executes in epics pages
   if (typeof materialsRecipe === 'undefined') {
-    let stylingButtonClass = '';
     const epicCrafts = Object.keys(itemsPerRecipe);
+    let stylingButtonClass = '';
       // Creates objects instances and pushes them to an array
       epicCrafts.forEach(item => {
         // Get name and recipe properties from itemsPerRecipe object
         const itemName = itemsPerRecipe[item]['name'];
         const itemRecipe = JSON.stringify(itemsPerRecipe[item]['recipe']);
         // Pushes to constructedObject arr object instances created with name and recipe properties
-        constructedObjects.push(new AvailableEpics(itemName, itemRecipe));
+        constructedObjects.push(new AvailableEpics(itemName, itemRecipe));      
       });
-
-    for (let i = 0; i < epicCrafts.length; i++) {
-      // Checks for saved objects in localstorage and sets cost and insalestatus properties to the values of the saved objects before rendering them
-      // checks for saved data
-      if (localStorage.getItem(epicCrafts[i])) {
-        const savedObj = JSON.parse(localStorage.getItem(epicCrafts[i]))
-        constructedObjects[i].cost = savedObj.cost;
-        constructedObjects[i].price = savedObj.price;
-        constructedObjects[i].profit = savedObj.profit;
-        constructedObjects[i].inSaleStatus = savedObj.inSaleStatus;
-        stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
-      }                  
+      
+ 
+    for (let i = 0; i < epicCrafts.length; i++) {    
+      // items docs references
+      const itemDocRef = doc(db, 'users', selectedProfile, 'items', epicCrafts[i]);    
+      await getDoc(itemDocRef)
+        .then(snapshot => {        
+          constructedObjects[i].cost = snapshot.data().cost; 
+          constructedObjects[i].cost = snapshot.data().cost;
+          constructedObjects[i].price = snapshot.data().price;
+          constructedObjects[i].profit = snapshot.data().profit;
+          constructedObjects[i].inSaleStatus = snapshot.data().inSaleStatus;
+          stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
+        })
+        .catch(err => console.log(err))                  
+      // adds HTML template for items in constructedObjects array
       displayCrafts.innerHTML += `
         <div class="o-crafts__item">
           <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
@@ -170,12 +199,16 @@ const startApp = () => {
           </form>
         </div>
       `;
-    }
-              
-  } else {
+            
+    }              
+  } else {    
     const matCrafts = Object.keys(materialsRecipe);
     
-    matCrafts.forEach(item => constructedObjects.push(new AvailableCrafts(materialsRecipe[item]["name"], JSON.stringify(materialsRecipe[item]["recipe"]))));
+    matCrafts.forEach(item => {
+      const itemName = materialsRecipe[item]["name"];
+      const itemRecipe = JSON.stringify(materialsRecipe[item]["recipe"]);
+      constructedObjects.push(new AvailableCrafts(itemName, itemRecipe));
+    });
       
     for (let i = 0; i < matCrafts.length; i++) {
       displayCrafts.innerHTML += `
@@ -226,6 +259,32 @@ const inventoryItem = document.querySelectorAll('.o-inventory__item');
 // Query to inventory item reset button
 const inventoryItemReset = document.querySelectorAll('.o-inventory__item-reset');
 
+const updateApp = () => {
+  let i = 0;
+  constructedObjects.forEach(obj => {
+    // Only executes in materials page
+    if (typeof materialsRecipe !== "undefined") {
+      obj.calcCraftCost();
+      obj.renderCrafts(i);
+      obj.enoughItems(i);
+     
+    } else {
+      const epicCrafts = Object.keys(itemsPerRecipe);
+      if (!constructedObjects[i].inSaleStatus) {
+        obj.calcCraftCost();
+        obj.renderEpics(i);
+        if (obj.price !== 0) {
+          obj.calcProfit(itemsToCraft[i].children[2]);
+        }              
+      } 
+      obj.enoughItems(i);
+      // <<Saves data>>      
+      todbConstructedObjs(epicCrafts[i], obj);
+    }
+    i++;
+  });    
+}
+
 const updateInventory = () => {
   let i = 0;
   inventoryItem.forEach(item => {
@@ -264,31 +323,9 @@ submitMaterialsForm.addEventListener('submit', e => {
   
   if (!isNaN(price) && !isNaN(quantity)) {
     buyMaterials(price, quantity, selectedMat);
-    updateInventory();
-  
-    // Updates objects values each submit event
-    let i = 0;
-    constructedObjects.forEach(obj => {
-      if (typeof materialsRecipe !== "undefined") {
-        obj.calcCraftCost();
-        obj.renderCrafts(i);
-        obj.enoughItems(i);    
-        
-      } else {
-        if (!constructedObjects[i].inSaleStatus) {
-          obj.calcCraftCost();
-          obj.renderEpics(i);
-          if (obj.price !== 0) {
-            obj.calcProfit(itemsToCraft[i].children[2]);
-          }
-        } 
-        obj.enoughItems(i);             
-      }
-      // Saves every object every submit event  
-      // <<Saves data>>
-      localStorage.setItem(itemsToCraft[i].children[1].id, JSON.stringify(constructedObjects[i]));
-      i++;    
-    });    
+    // Updates objects values each submit event 
+    updateInventory();         
+    updateApp();    
     mementoSave();
   }
   submitMaterialsForm.reset();
@@ -322,8 +359,7 @@ itemsToCraft.forEach(form => {
       updateInventory();
       for (let i = 0; i < constructedObjects.length; i++){
         constructedObjects[i].enoughItems(i);
-      }
-      
+      }      
       e.target.reset();
     } else {
       constructedObjects[objIndex].inSale(formChildren, objIndex);
@@ -343,32 +379,11 @@ itemsToCraft.forEach(form => {
   
     const objIndex = Array.prototype.slice.call(itemsToCraft).indexOf(e.target.parentElement);
     constructedObjects[objIndex].price = parseInt(formChildren[0].value);
-    constructedObjects[objIndex].calcProfit(formChildren[2]);        
+    constructedObjects[objIndex].calcProfit(formChildren[2]);
+    // saves data
+    todbConstructedObjs(formChildren[1].id, constructedObjects[objIndex]);
   })
 });
-
-const updateApp = () => {
-  let i = 0;
-  constructedObjects.forEach(obj => {
-    
-    if (typeof materialsRecipe !== "undefined") {
-      obj.calcCraftCost();
-      obj.renderCrafts(i);
-      obj.enoughItems(i);
-     
-    } else {
-      if (!constructedObjects[i].inSaleStatus) {
-        obj.calcCraftCost();
-        obj.renderEpics(i);
-        if (obj.price !== 0) {
-          obj.calcProfit(itemsToCraft[i].children[2]);
-        }              
-      } 
-      obj.enoughItems(i);         
-    }
-    i++;
-  });    
-}
 
 
 
@@ -376,19 +391,16 @@ const undo = () => {
   let stylingButtonClass = '';
   // Removes last snapshot from mementos
   mementos.pop();
-  // Sets the objects values to the last memento snapshot
   const lastMemento = mementos[mementos.length - 1];
-  // Sets inventory and averages keys to localStorage
-  // <<Saves data>>
-  localStorage.setItem('materials', lastMemento[0]);
 
-  // Sets matsInfo to the one stored in lastMemento
   if (lastMemento !== 'undefined') {
-    matsInfo = JSON.parse(lastMemento[0]);    
-    // Sets constructedObject properties to the values of the lastMemento 2nd element    
-    let i = 0;
-    // gets itemsPerRecipe keys (the names/ids of the epic Crafts)
     const epicCrafts = Object.keys(itemsPerRecipe);
+    // Sets matsInfo to the one stored in lastMemento
+    matsInfo = JSON.parse(lastMemento[0]);
+    // Saves data to db
+    todbMatsinfo();
+  
+    let i = 0;        
     // Loops through lastMemento 3rd element (an array) 
     lastMemento[1].forEach(obj => {
       const parsedObject = JSON.parse(obj);         
@@ -397,10 +409,9 @@ const undo = () => {
       constructedObjects[i].price = parsedObject.price;
       constructedObjects[i].profit = parsedObject.profit;
       constructedObjects[i].inSaleStatus = parsedObject.inSaleStatus;    
-      stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
-      // Sets constructedObjects objects to localstorage
+      stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';      
       // <<Saves data>>       
-      localStorage.setItem(epicCrafts[i], obj);
+      todbConstructedObjs(epicCrafts[i], parsedObject);
       // Renders the items again with the new values
       displayCrafts.innerHTML += `
         <div class="o-crafts__item">
@@ -435,7 +446,7 @@ inventoryMainUI.addEventListener('click', e => {
     matsInfo[itemID].quantity = 0;
     
     // <<Saves data>>    
-    localStorage.setItem('materials', JSON.stringify(matsInfo));
+    todbMatsinfo();
     updateApp();
     updateInventory();
   }
