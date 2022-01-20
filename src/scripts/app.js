@@ -92,8 +92,8 @@ class AvailableCrafts {
     let calculatedCost = 0;
     Object.keys(this.recipe).forEach(material => {
       calculatedCost += this.recipe[material] * matsInfo[material].price;
-      this.cost = calculatedCost;            
     });
+    this.cost = calculatedCost;
     return this;
   }
   craftItem(quantityInput) {
@@ -148,8 +148,8 @@ class AvailableEpics extends AvailableCrafts {
     mementoSave();
   } 
   renderEpics(i) {
-    craftCostInput[i].value = Math.round(this.cost).toString();
     craftPriceInput[i].value = Math.round(this.price).toString();
+    craftCostInput[i].value = Math.round(this.cost).toString();
     return this;
   }
 }
@@ -157,8 +157,7 @@ class AvailableEpics extends AvailableCrafts {
 const startApp = () => {  
   // Only executes in epics pages
   if (typeof materialsRecipe === 'undefined') {
-    const epicCrafts = Object.keys(itemsPerRecipe);
-    let stylingButtonClass = 'none';
+    const epicCrafts = Object.keys(itemsPerRecipe);    
     let i = 0;    
     epicCrafts.forEach(item => {
       
@@ -174,7 +173,7 @@ const startApp = () => {
           <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
           <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
           <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
-          <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
+          <button type="submit" class="o-crafts__btn o-btn">In Sale</button>
         </form>
       </div>
     `;
@@ -187,9 +186,10 @@ const startApp = () => {
       constructedObjects[i].price = response.data().price;
       constructedObjects[i].cost = response.data().cost;
       constructedObjects[i].profit = response.data().profit;
-      constructedObjects[i].inSaleStatus = response.data().inSaleStatus;    
-      stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';          
-      i++;    
+      constructedObjects[i].inSaleStatus = response.data().inSaleStatus;             
+      updateApp(i);
+      i++;
+
     });
   } else {    
     const matCrafts = Object.keys(materialsRecipe);
@@ -236,55 +236,56 @@ const startInventory = async () => {
   });
   updateInventory();
 }
-
-startApp();
 startInventory();
+startApp();
 
 
 // Mat cost text span query
 const matCost = document.querySelectorAll(".o-crafts__item-cost");
 const craftCostInput = document.querySelectorAll(".o-crafts__cost");
 const craftPriceInput = document.querySelectorAll(".o-crafts__price");
+const craftButtons = document.querySelectorAll(".o-crafts__btn");
 // Each item form query
 const itemsToCraft = document.querySelectorAll('.o-crafts__interface');
 // Query to each inventory item
 const inventoryItem = document.querySelectorAll('.o-inventory__item');
 
 
-const updateApp = () => {
-  let i = 0;
-  constructedObjects.forEach(obj => {
-    // Only executes in materials page
-    if (typeof materialsRecipe !== "undefined") {
-      obj.calcCraftCost();
-      obj.renderCrafts(i);
-      obj.enoughItems(i);
-     
+const updateApp = (i) => {  
+  // Only executes in materials page
+  if (typeof materialsRecipe !== "undefined") {
+    constructedObjects[i].calcCraftCost(i);
+    constructedObjects[i].renderCrafts(i);
+    constructedObjects[i].enoughItems(i);
+    
+  } else {
+    const epicCrafts = Object.keys(itemsPerRecipe);
+    if (!constructedObjects[i].inSaleStatus) {
+      // Sets cost to input field
+      constructedObjects[i].calcCraftCost(i);
+      // Sets price to input field
+      constructedObjects[i].renderEpics(i);
+      craftButtons[i].classList.remove('o-crafts__btn--in-sale');                   
     } else {
-      const epicCrafts = Object.keys(itemsPerRecipe);
-      if (!constructedObjects[i].inSaleStatus) {
-        obj.calcCraftCost();
-        obj.renderEpics(i);
-        if (obj.price !== 0) {
-          obj.calcProfit(itemsToCraft[i].children[2]);
-        }              
-      } 
-      obj.enoughItems(i);
-      // <<Saves data>>      
-      todbConstructedObjs(epicCrafts[i], obj);
+      constructedObjects[i].renderEpics(i);      
+      craftButtons[i].classList.add('o-crafts__btn--in-sale');      
     }
-    i++;
-  });    
+    if (constructedObjects[i].price !== 0) {
+      // Sets profit to input field
+      constructedObjects[i].calcProfit(itemsToCraft[i].children[2]);
+    } 
+    constructedObjects[i].enoughItems(i);
+    // <<Saves data>>      
+    todbConstructedObjs(epicCrafts[i], constructedObjects[i]);
+  }    
 }
 
-const updateInventory = () => {
-  let i = 0;
+const updateInventory = () => {  
   inventoryItem.forEach(item => {
     const itemChildren = item.children;
     const matId = item.id;  
     itemChildren[1].textContent = matsInfo[matId].quantity.toString();    
-    itemChildren[2].textContent = '$' + matsInfo[matId].price.toString();
-    i++;
+    itemChildren[2].textContent = '$' + matsInfo[matId].price.toString();    
   });
 };
 
@@ -316,8 +317,10 @@ submitMaterialsForm.addEventListener('submit', e => {
   if (!isNaN(price) && !isNaN(quantity)) {
     buyMaterials(price, quantity, selectedMat);
     // Updates objects values each submit event 
-    updateInventory();         
-    updateApp();    
+    updateInventory();        
+    for (let i = 0; i < constructedObjects.length; i++) {
+      updateApp(i);    
+    }
     mementoSave();
   }
   submitMaterialsForm.reset();
@@ -330,9 +333,8 @@ dropdownListDisplay.addEventListener('click', e => {
   } else {
     selectedMat = e.target.id;
     // Gets textContent of an html element acceded by id
-    const selectedMatHTMLElement = document.getElementById(selectedMat).textContent;
-    // Modifies the span text in materials button, if it is Primorial Saronite, will just display first word (well that's just lazy fix)
-    materialListText.textContent = selectedMatHTMLElement === 'Primordial Saronite' ? 'Primordial' : selectedMatHTMLElement;
+    const selectedMatHTMLElement = document.getElementById(selectedMat).textContent;    
+    materialListText.textContent = selectedMatHTMLElement;
     dropdownListDisplay.children[1].classList.toggle('o-materials__list--display-none');
   }
 });
@@ -439,9 +441,10 @@ inventoryMainUI.addEventListener('click', e => {
     
     // <<Saves data>>    
     todbMatsinfo();
-    updateApp();
+    for (let i = 0; i<constructedObjects.length; i++) {
+      updateApp(i);
+    }
     updateInventory();
   }
 });
 mementoSave();
-updateApp();
