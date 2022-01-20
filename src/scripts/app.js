@@ -36,6 +36,7 @@ const selectedProfile = 'huntail';
 
 // materials collection reference
 const matsColRef = collection(db, 'users', selectedProfile, 'materials');
+const itemsColRef = collection(db, 'users', selectedProfile, 'items');
 
 // Stores the id of the material selected in a mouse event
 let selectedMat = 'eternalFire';
@@ -148,59 +149,48 @@ class AvailableEpics extends AvailableCrafts {
   } 
   renderEpics(i) {
     craftCostInput[i].value = Math.round(this.cost).toString();
+    craftPriceInput[i].value = Math.round(this.price).toString();
     return this;
   }
 }
 
-// Constructs all of the objects at the start of the application
-async const startApp = () => {
-  // Retrieves materials values from db to set them to matsInfo
-  await getDocs(matsColRef)
-    .then(snapshot => snapshot.forEach(doc => {
-      matsInfo[doc.id] = doc.data();      
-    }))
-    .catch(err => console.log(err))  
+const startApp = () => {  
   // Only executes in epics pages
   if (typeof materialsRecipe === 'undefined') {
     const epicCrafts = Object.keys(itemsPerRecipe);
-    let stylingButtonClass = '';
-      // Creates objects instances and pushes them to an array
-      epicCrafts.forEach(item => {
-        // Get name and recipe properties from itemsPerRecipe object
-        const itemName = itemsPerRecipe[item]['name'];
-        const itemRecipe = JSON.stringify(itemsPerRecipe[item]['recipe']);
-        // Pushes to constructedObject arr object instances created with name and recipe properties
-        constructedObjects.push(new AvailableEpics(itemName, itemRecipe));      
-      });
+    let stylingButtonClass = 'none';
+    let i = 0;    
+    epicCrafts.forEach(item => {
       
- 
-    for (let i = 0; i < epicCrafts.length; i++) {    
-      // items docs references
-      const itemDocRef = doc(db, 'users', selectedProfile, 'items', epicCrafts[i]);    
-      await getDoc(itemDocRef)
-        .then(snapshot => {        
-          constructedObjects[i].cost = snapshot.data().cost; 
-          constructedObjects[i].cost = snapshot.data().cost;
-          constructedObjects[i].price = snapshot.data().price;
-          constructedObjects[i].profit = snapshot.data().profit;
-          constructedObjects[i].inSaleStatus = snapshot.data().inSaleStatus;
-          stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';
-        })
-        .catch(err => console.log(err))                  
-      // adds HTML template for items in constructedObjects array
+      // Get name and recipe properties from itemsPerRecipe object
+      const itemName = itemsPerRecipe[item]['name'];
+      const itemRecipe = JSON.stringify(itemsPerRecipe[item]['recipe']);
+      // Pushes to constructedObject arr object instances created with name and recipe properties
+      constructedObjects.push(new AvailableEpics(itemName, itemRecipe));         
       displayCrafts.innerHTML += `
-        <div class="o-crafts__item">
-          <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
-          <form class="o-crafts__interface">              
-            <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
-            <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
-            <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
-            <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
-          </form>
-        </div>
-      `;
-            
-    }              
+      <div class="o-crafts__item">
+        <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
+        <form class="o-crafts__interface">              
+          <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
+          <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
+          <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
+          <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
+        </form>
+      </div>
+    `;
+      i++       
+    });
+    i = 0; 
+    epicCrafts.forEach(async id => {
+      const itemDocRef = doc(db, 'users', selectedProfile, 'items', id);
+      const response = await getDoc(itemDocRef);
+      constructedObjects[i].price = response.data().price;
+      constructedObjects[i].cost = response.data().cost;
+      constructedObjects[i].profit = response.data().profit;
+      constructedObjects[i].inSaleStatus = response.data().inSaleStatus;    
+      stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';          
+      i++;    
+    });
   } else {    
     const matCrafts = Object.keys(materialsRecipe);
     
@@ -227,7 +217,7 @@ async const startApp = () => {
 };
 // Renders the name from the materials in materialList ul, 
 // gets the id of the li elements to access matsInfo properties
-const startInventory = () => {  
+const startInventory = async () => {    
   for (let i = 0; i < materialList.children.length; i++) {
     const matName = materialList.children[i].textContent;
     const matId = materialList.children[i].id;
@@ -239,7 +229,12 @@ const startInventory = () => {
       <button class="o-inventory__item-reset o-btn">Reset</button>
     </div>
     `;                  
-  }
+  }  
+  const response = await getDocs(matsColRef);
+  response.forEach(doc => {
+    matsInfo[doc.id] = doc.data();
+  });
+  updateInventory();
 }
 
 startApp();
@@ -248,16 +243,13 @@ startInventory();
 
 // Mat cost text span query
 const matCost = document.querySelectorAll(".o-crafts__item-cost");
-// calculated cost in epics query
 const craftCostInput = document.querySelectorAll(".o-crafts__cost");
+const craftPriceInput = document.querySelectorAll(".o-crafts__price");
 // Each item form query
 const itemsToCraft = document.querySelectorAll('.o-crafts__interface');
-
 // Query to each inventory item
 const inventoryItem = document.querySelectorAll('.o-inventory__item');
 
-// Query to inventory item reset button
-const inventoryItemReset = document.querySelectorAll('.o-inventory__item-reset');
 
 const updateApp = () => {
   let i = 0;
@@ -377,7 +369,7 @@ itemsToCraft.forEach(form => {
     const formChildren = e.target.parentElement.children;
     // Converts HTML collection to an array and gets the index of the e.target
   
-    const objIndex = Array.prototype.slice.call(itemsToCraft).indexOf(e.target.parentElement);
+    const objIndex = Array.prototype.slice.call(itemsToCraft).indexOf(e.target.parentElement);    
     constructedObjects[objIndex].price = parseInt(formChildren[0].value);
     constructedObjects[objIndex].calcProfit(formChildren[2]);
     // saves data
@@ -451,8 +443,5 @@ inventoryMainUI.addEventListener('click', e => {
     updateInventory();
   }
 });
-
-
 mementoSave();
 updateApp();
-
