@@ -235,6 +235,10 @@ const startInventory = async () => {
     matsInfo[doc.id] = doc.data();
   });
   updateInventory();
+  if(materialsRecipe !== 'undefined') {
+    const matCrafts = Object.keys(materialsRecipe);
+    for (let i = 0; i < matCrafts.length; i++) { updateApp(i) }
+  }
 }
 startInventory();
 startApp();
