@@ -32,11 +32,10 @@ initializeApp(firebaseConfig);
 const db = getFirestore();
 
 // Selected (profile) for collectionReference
-const selectedProfile = 'unzainted';
+const selectedProfile = 'huntail';
 
 // materials collection reference
 const matsColRef = collection(db, 'users', selectedProfile, 'materials');
-const itemsColRef = collection(db, 'users', selectedProfile, 'items');
 
 // Stores the id of the material selected in a mouse event
 let selectedMat = 'eternalFire';
