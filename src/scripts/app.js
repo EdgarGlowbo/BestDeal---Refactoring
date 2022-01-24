@@ -32,7 +32,7 @@ initializeApp(firebaseConfig);
 const db = getFirestore();
 
 // Selected (profile) for collectionReference
-const selectedProfile = 'huntail';
+const selectedProfile = 'unzainted';
 
 // materials collection reference
 const matsColRef = collection(db, 'users', selectedProfile, 'materials');
@@ -190,7 +190,8 @@ const startApp = () => {
       updateApp(i);
       i++;
 
-    });
+    });    
+
   } else {    
     const matCrafts = Object.keys(materialsRecipe);
     
@@ -212,7 +213,7 @@ const startApp = () => {
         </form>
       </div>
       `;
-    }
+    }  
   }
 };
 // Renders the name from the materials in materialList ul, 
@@ -235,10 +236,11 @@ const startInventory = async () => {
     matsInfo[doc.id] = doc.data();
   });
   updateInventory();
-  if(materialsRecipe !== 'undefined') {
+  if(typeof materialsRecipe !== 'undefined') {
     const matCrafts = Object.keys(materialsRecipe);
     for (let i = 0; i < matCrafts.length; i++) { updateApp(i) }
   }
+  mementoSave();
 }
 startInventory();
 startApp();
@@ -281,7 +283,8 @@ const updateApp = (i) => {
     constructedObjects[i].enoughItems(i);
     // <<Saves data>>      
     todbConstructedObjs(epicCrafts[i], constructedObjects[i]);
-  }    
+  }
+  console.log(mementos);
 }
 
 const updateInventory = () => {  
@@ -449,6 +452,6 @@ inventoryMainUI.addEventListener('click', e => {
       updateApp(i);
     }
     updateInventory();
+    mementoSave();
   }
 });
-mementoSave();
