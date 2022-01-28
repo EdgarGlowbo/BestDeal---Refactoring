@@ -14,7 +14,7 @@ const materialsRecipe = {
     }      
   },
   mooncloth: {
-    name: 'Mooncloth',
+    name: 'Moonshroud',
     recipe: {
       eternalLife: 1,
       imbuedFwCloth: 0.5
@@ -38,5 +38,27 @@ const materialsRecipe = {
   fwBolt: {
     name: 'Frostweave Bolt',
     recipe: { fwCloth: 5 }
-  }
+  },
+  majesticZircon: {
+    name: 'Majestic Zircon',
+    recipe: { 
+      skySapphire: 1, 
+      eternalAir: 1
+    }
+  },
+  kingsAmber: {
+    name: 'King\'s Amber',
+    recipe: { 
+      autumnsGlow: 1, 
+      eternalLife: 1
+    }
+  },
+  eyeOfZul: {
+    name: 'Eye of Zul',
+    recipe: { forestEmerald: 3 }
+  },
+  cobaltBolts: {
+    name: 'Handful of Cobalt Bolts',
+    recipe: { cobaltBar: 1 }
+  }  
 }
