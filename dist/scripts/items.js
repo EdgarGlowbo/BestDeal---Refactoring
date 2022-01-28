@@ -116,6 +116,38 @@ let matsInfo = {
     infiniteDust: {
         price: 0,
         quantity: 0
+    },
+    forestEmerald: {
+        price: 0,
+        quantity: 0
+    },
+    autumnsGlow: {
+        price: 0,
+        quantity: 0,        
+    },
+    skySapphire: {
+        price: 0,
+        quantity: 0
+    },
+    cobaltBolts: {
+        price: 0,
+        quantity: 0
+    },
+    piston: {
+        price: 0,
+        quantity: 0
+    },
+    golemParts: {
+        price: 0,
+        quantity: 0
+    },
+    elementiumPipe: {
+        price: 0,
+        quantity: 0
+    },
+    cobaltBar: {
+        price: 0,
+        quantity: 0
     }
 };
 

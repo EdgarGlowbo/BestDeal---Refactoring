@@ -61,6 +61,17 @@ const itemsPerRecipe = {
         saroniteBar: 12,
         eternalFire: 1 
       }    
+    },
+    mekgineer: {
+      name: 'Mekgineer\'s Chopper',
+      recipe: {
+        titansteelBar: 12,
+        arcticFur: 2,
+        cobaltBolts: 40,
+        piston: 8,
+        golemParts: 1,
+        elementiumPipe: 1
+      }
     }
 };
 
