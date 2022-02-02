@@ -395,40 +395,49 @@ const undo = () => {
   mementos.pop();
   const lastMemento = mementos[mementos.length - 1];
 
-  if (lastMemento !== 'undefined') {
-    const epicCrafts = Object.keys(itemsPerRecipe);
+  if (typeof lastMemento !== 'undefined') {
     // Sets matsInfo to the one stored in lastMemento
     matsInfo = JSON.parse(lastMemento[0]);
     // Saves data to db
     todbMatsinfo();
-  
-    let i = 0;        
-    // Loops through lastMemento 3rd element (an array) 
-    lastMemento[1].forEach(obj => {
-      const parsedObject = JSON.parse(obj);         
-      // Sets current constructedObjects properties' values to the lastMemento ones
-      constructedObjects[i].cost = parsedObject.cost;
-      constructedObjects[i].price = parsedObject.price;
-      constructedObjects[i].profit = parsedObject.profit;
-      constructedObjects[i].inSaleStatus = parsedObject.inSaleStatus;    
-      stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';      
-      // <<Saves data>>       
-      todbConstructedObjs(epicCrafts[i], parsedObject);
-      // Renders the items again with the new values
-      displayCrafts.innerHTML += `
-        <div class="o-crafts__item">
-          <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
-          <form class="o-crafts__interface">              
-            <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
-            <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
-            <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
-            <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
-          </form>
-        </div>
-      `;
-      updateInventory();
-      i++;
-    });
+    let i = 0;       
+    if (typeof itemsPerRecipe !== 'undefined') {
+      const epicCrafts = Object.keys(itemsPerRecipe);                      
+      // Loops through lastMemento 3rd element (an array) 
+      lastMemento[1].forEach(obj => {
+        const parsedObject = JSON.parse(obj);         
+        // Sets current constructedObjects properties' values to the lastMemento ones
+        constructedObjects[i].cost = parsedObject.cost;
+        constructedObjects[i].price = parsedObject.price;
+        constructedObjects[i].profit = parsedObject.profit;
+        constructedObjects[i].inSaleStatus = parsedObject.inSaleStatus;    
+        stylingButtonClass = constructedObjects[i].inSaleStatus ? 'o-crafts__btn--in-sale' : 'none';      
+        // <<Saves data>>       
+        todbConstructedObjs(epicCrafts[i], parsedObject);
+        // Renders the items again with the new values
+        displayCrafts.innerHTML += `
+          <div class="o-crafts__item">
+            <h3 class="o-crafts__title o-crafts__item-name o-text o-text-title">${constructedObjects[i].name}</h3>
+            <form class="o-crafts__interface">              
+              <input type="text" class="o-crafts__input o-crafts__price o-input" value="${constructedObjects[i].price}" placeholder="$">
+              <input type="text" class="o-crafts__input o-crafts__cost o-input" id="${epicCrafts[i]}" value="${constructedObjects[i].cost}">
+              <span class="o-crafts__text o-crafts__profit o-text-span">${constructedObjects[i].profit}</span>
+              <button type="submit" class="o-crafts__btn o-btn ${stylingButtonClass}">In Sale</button>
+            </form>
+          </div>
+        `;
+        i++
+      });      
+    } else {
+
+      lastMemento[1].forEach(obj => {
+        const parsedObject = JSON.parse(obj);         
+        constructedObjects[i].cost = parsedObject.cost;
+        constructedObjects[i].renderCrafts(i);
+        i++
+      });
+    }
+    updateInventory();
   }   
 }
 undoButton.addEventListener('click', () => {
